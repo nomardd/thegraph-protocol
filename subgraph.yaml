@@ -1,4 +1,4 @@
-specVersion: 0.0.1
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -6,21 +6,16 @@ dataSources:
     name: Nomard
     network: mumbai
     source:
-      address: "0x534379c7a2cd9b1567Fa3D68640C10C897DBA30F"
+      address: "0x36EeD0A90F6649c39564cd9B121abe0396b41dFF"
       abi: Nomard
+      startBlock: 28525111
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - DeleteTrip
-        - GiveBackTripMoney
-        - NewAddTripMembers
-        - NewFundTrip
-        - NewTrip
-        - NewWithdralRequest
-        - NewWithdrawDone
-        - UserApprovedWithdraw
+        - Trip
+        - Withdraw
       abis:
         - name: Nomard
           file: ./abis/Nomard.json

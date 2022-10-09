@@ -1,6 +1,5 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
-  Nomard,
   DeleteTrip,
   GiveBackTripMoney,
   NewAddTripMembers,
@@ -8,65 +7,76 @@ import {
   NewTrip,
   NewWithdralRequest,
   NewWithdrawDone,
-  UserApprovedWithdraw
-} from "../generated/Nomard/Nomard"
-import { ExampleEntity } from "../generated/schema"
+  UserApprovedWithdraw,
+} from "../generated/Nomard/Nomard";
+import { Trip, Withdraw } from "../generated/schema";
 
-export function handleDeleteTrip(event: DeleteTrip): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.tripId = event.params.tripId
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.addTripMembers(...)
-  // - contract.deleteTrip(...)
-  // - contract.withdrawRequest(...)
-  // - contract.addressAlreadyApproved(...)
-  // - contract.getAvailableMoneyInTrip(...)
-}
+export function handleDeleteTrip(event: DeleteTrip): void {}
 
 export function handleGiveBackTripMoney(event: GiveBackTripMoney): void {}
 
-export function handleNewAddTripMembers(event: NewAddTripMembers): void {}
+export function handleNewAddTripMembers(event: NewAddTripMembers): void {
+  let trip = Trip.load(event.params.trip.toHex());
+  if (!trip) {
+    trip = new Trip(event.params.trip.toHex());
+  }
+  let members = trip.members;
+  if (!members) {
+    members = [event.params.user];
+  } else {
+    members.push(event.params.user);
+  }
+  trip.members = members;
+  trip.save();
+}
 
-export function handleNewFundTrip(event: NewFundTrip): void {}
+export function handleNewFundTrip(event: NewFundTrip): void {
+  let trip = new Trip(event.params.trip.toHex());
+  let totalObtained = trip.totalObtained;
+  if (!totalObtained) {
+    totalObtained = BigInt.zero();
+  }
+  trip.totalObtained = event.params.amount.plus(totalObtained);
+  trip.save();
+}
 
-export function handleNewTrip(event: NewTrip): void {}
+export function handleNewTrip(event: NewTrip): void {
+  let trip = new Trip(event.params.tripId.toHex());
+  trip.name = event.params.tripName;
+  trip.owner = event.params.user;
+  trip.totalAmount = event.params.totalNeeded;
+  trip.save();
+}
 
-export function handleNewWithdralRequest(event: NewWithdralRequest): void {}
+export function handleNewWithdralRequest(event: NewWithdralRequest): void {
+  let withdraw = new Withdraw(event.params.withdrawId.toHex());
+  withdraw.amount = event.params.amount;
+  withdraw.done = false;
+  withdraw.approvals = [];
+  withdraw.receipt = event.params.receipt;
+  withdraw.tripId = event.params.trip;
+  withdraw.save();
+}
 
-export function handleNewWithdrawDone(event: NewWithdrawDone): void {}
+export function handleNewWithdrawDone(event: NewWithdrawDone): void {
+  let withdraw = Withdraw.load(event.params.withdrawId.toHex());
+  if (!withdraw) {
+    withdraw = new Withdraw(event.params.withdrawId.toHex());
+  }
+  withdraw.done = true;
+  withdraw.save();
+}
 
-export function handleUserApprovedWithdraw(event: UserApprovedWithdraw): void {}
+export function handleUserApprovedWithdraw(event: UserApprovedWithdraw): void {
+  let withdraw = Withdraw.load(event.params.withdrawId.toHex());
+  if (!withdraw) {
+    withdraw = new Withdraw(event.params.withdrawId.toHex());
+  }
+  let withdrawApprovals = withdraw.approvals;
+  if (!withdrawApprovals) {
+    withdrawApprovals = [event.params.user];
+  } else {
+    withdrawApprovals.push(event.params.user);
+  }
+  withdraw.save();
+}

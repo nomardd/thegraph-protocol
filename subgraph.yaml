@@ -1,0 +1,44 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Nomard
+    network: mumbai
+    source:
+      address: "0x534379c7a2cd9b1567Fa3D68640C10C897DBA30F"
+      abi: Nomard
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - DeleteTrip
+        - GiveBackTripMoney
+        - NewAddTripMembers
+        - NewFundTrip
+        - NewTrip
+        - NewWithdralRequest
+        - NewWithdrawDone
+        - UserApprovedWithdraw
+      abis:
+        - name: Nomard
+          file: ./abis/Nomard.json
+      eventHandlers:
+        - event: DeleteTrip(uint256)
+          handler: handleDeleteTrip
+        - event: GiveBackTripMoney(uint256)
+          handler: handleGiveBackTripMoney
+        - event: NewAddTripMembers(uint256,address)
+          handler: handleNewAddTripMembers
+        - event: NewFundTrip(uint256,uint256,address)
+          handler: handleNewFundTrip
+        - event: NewTrip(uint256,address,string,uint256)
+          handler: handleNewTrip
+        - event: NewWithdralRequest(uint256,uint256,uint256,address,string)
+          handler: handleNewWithdralRequest
+        - event: NewWithdrawDone(uint256,uint256,address)
+          handler: handleNewWithdrawDone
+        - event: UserApprovedWithdraw(address,uint256)
+          handler: handleUserApprovedWithdraw
+      file: ./src/nomard.ts
